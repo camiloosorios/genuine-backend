@@ -12,21 +12,30 @@ class FulfillmentController extends Controller
     public function getProductsIntent(Request $request)
     {
         $categoryName = $request->input('queryResult.parameters.Category');
-
         $category = Category::where('name', $categoryName)->first();
 
         if (!$category) {
-            return response()->json(['fulfillmentText' => "The category '$categoryName' was not found."], 404);
+            return response()->json([
+                'fulfillmentText' => "The category '$categoryName' was not found."
+            ]);
         }
 
-        $products = $category->products()->pluck('name')->toArray();
+        $products = $category->products()->get(['id', 'name', 'quantity']);
 
-        if (empty($products)) {
-            return response()->json(['fulfillmentText' => "No products found in the '$categoryName' category."]);
+        if ($products->isEmpty()) {
+            return response()->json([
+                'fulfillmentText' => "No products found in the '$categoryName' category."
+            ]);
         }
 
-        return response()->json(['fulfillmentText' => $products]);
+        $message = "Products in the '$categoryName' category:\n";
+        foreach ($products as $product) {
+            $message .= "ID: {$product->id} - Name: {$product->name} - Quantity: {$product->quantity}\n";
+        }
+
+        return response()->json(['fulfillmentText' => $message]);
     }
+
 
 
     public function getProductsCountIntent(Request $request)
