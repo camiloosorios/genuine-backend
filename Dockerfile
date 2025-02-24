@@ -1,39 +1,25 @@
-# Usa una imagen base de PHP con Apache
-FROM php:8.2-apache
+# Usa la imagen de Laravel Sail como base (en este caso, PHP 8.4)
+FROM sail-8.4/app:latest
 
-# Instala extensiones necesarias
-RUN apt-get update && apt-get install -y \
-    libpng-dev \
-    libjpeg-dev \
-    libfreetype6-dev \
-    zip \
-    unzip \
-    git \
-    curl \
-    && docker-php-ext-install pdo pdo_mysql gd
+# Define variables de entorno si lo requieres (opcional)
+ARG WWWGROUP
+ARG WWWUSER
 
-# Habilitar mod_rewrite para Laravel
-RUN a2enmod rewrite
-
-# Instalar Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-# Establecer el directorio de trabajo
+# Establecer directorio de trabajo
 WORKDIR /var/www/html
 
-# Copiar los archivos del proyecto
+# Copiar los archivos de la aplicación
 COPY . .
 
-# Instalar dependencias de Composer
+# Instalar dependencias de Composer (se asume que ya tienes composer en la imagen base)
 RUN composer install --no-dev --optimize-autoloader
 
-# Asignar permisos a Laravel
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 775 /var/www/html/storage \
-    && chmod -R 775 /var/www/html/bootstrap/cache
+# Cambiar permisos de storage y bootstrap/cache
+RUN chown -R ${WWWUSER}:${WWWGROUP} /var/www/html \
+    && chmod -R 775 storage bootstrap/cache
 
-# Exponer el puerto 80
+# Exponer el puerto 80 (o el que definas en la variable APP_PORT)
 EXPOSE 80
 
-# Iniciar Apache
-CMD ["apache2-foreground"]
+# Comando de inicio (se podría ajustar según la entrada de Sail)
+CMD ["php-fpm"]
