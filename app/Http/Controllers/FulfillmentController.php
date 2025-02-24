@@ -2,21 +2,35 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\ProductCollection;
 use App\Models\Category;
-use App\Models\Product;
 use Illuminate\Http\Request;
 
 class FulfillmentController extends Controller
 {
-    public function getProductsIntent(Request $request)
+    public function productIntents(Request $request)
+    {
+        $intent = $request->input('queryResult.intent.displayName');
+
+        switch ($intent) {
+            case 'GetProductsIntent':
+                return $this->getProductsByCategory($request);
+            case 'GetProductsCountIntent':
+                return $this->getProductsCountByCategory($request);
+            default:
+                return response()->json([
+                    'fulfillmentText' => "Oops, I haven't learned how to handle that request yet. Could you try something else?"
+                ]);
+        }
+    }
+
+    private function getProductsByCategory(Request $request)
     {
         $categoryName = $request->input('queryResult.parameters.Category');
         $category = Category::where('name', $categoryName)->first();
 
         if (!$category) {
             return response()->json([
-                'fulfillmentText' => "The category '$categoryName' was not found."
+                'fulfillmentText' => "I'm sorry, but I couldn't find the category '$categoryName'. Please double-check the name or try another category."
             ]);
         }
 
@@ -24,42 +38,38 @@ class FulfillmentController extends Controller
 
         if ($products->isEmpty()) {
             return response()->json([
-                'fulfillmentText' => "No products found in the '$categoryName' category."
+                'fulfillmentText' => "It looks like there are no products available in the '$categoryName' category at the moment."
             ]);
         }
 
-        $message = "Products in the '$categoryName' category:\n";
+        $message = "Here are the products I found in the '$categoryName' category:\n\n";
         foreach ($products as $product) {
-            $message .= "ID: {$product->id} - Name: {$product->name} - Quantity: {$product->quantity}\n";
+            $message .= "• ID: {$product->id} - Name: {$product->name} - Quantity: {$product->quantity}\n";
         }
+        $message .= "\nI hope this helps! Let me know if you need anything else.";
 
         return response()->json(['fulfillmentText' => $message]);
     }
 
-
-
-    public function getProductsCountIntent(Request $request)
+    private function getProductsCountByCategory(Request $request)
     {
-        $categoryName = $request->input('queryResult.parameters.category');
-
+        $categoryName = $request->input('queryResult.parameters.Category');
         $category = Category::where('name', $categoryName)->first();
 
         if (!$category) {
             return response()->json([
-                'error' => "The category '$categoryName' was not found."
-            ], 404);
-        }
-
-        $count = $category->products()->count();
-
-        if ($count === 0) {
-            return response()->json([
-                'error' => "No products found in the '$categoryName' category."
+                'fulfillmentText' => "I couldn't locate the category '$categoryName'. Could you please verify the category name and try again?"
             ]);
         }
 
+        $productsCount = $category->products()->count();
+
+        $message = "Great news! The '$categoryName' category currently has $productsCount product";
+        $message .= $productsCount == 1 ? "" : "s";
+        $message .= ". If you'd like to see the details of each product, just ask me for the list.";
+
         return response()->json([
-            'products_count' => $count
+            'fulfillmentText' => $message
         ]);
     }
 }
