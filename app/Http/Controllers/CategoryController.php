@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\CategoryRequest;
 use App\Http\Resources\CategoryCollection;
 use App\Http\Resources\CategoryResource;
 use App\Models\Category;
@@ -31,7 +30,7 @@ class CategoryController extends Controller
         return new CategoryResource($category);
     }
 
-    public function store(CategoryRequest $request)
+    public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|unique:categories,name',

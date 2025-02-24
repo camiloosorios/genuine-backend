@@ -13,7 +13,7 @@ class DialogflowController extends Controller
     {
         $projectId = env('DIALOGFLOW_PROJECT_ID');
         $sessionId = uniqid();
-        $languageCode = 'es';
+        $languageCode = 'en';
 
         $text = $request->input('text');
 

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ProductRequest;
 use App\Http\Resources\ProductCollection;
 use App\Models\Product;
 use Illuminate\Http\Request;
@@ -14,7 +13,7 @@ class ProductController extends Controller
     {
         $products = Product::paginate(10);
 
-        if ($products->count()) {
+        if (!$products->count()) {
             return response()->json(['message' => 'No products found'], 404);
         }
 
