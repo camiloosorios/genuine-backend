@@ -21,7 +21,7 @@ class DialogflowController extends Controller
             "type" => "service_account",
             "project_id" => env('DIALOGFLOW_PROJECT_ID'),
             "private_key_id" => env('DIALOGFLOW_PRIVATE_KEY_ID'),
-            "private_key" => env('DIALOGFLOW_PRIVATE_KEY'),
+            "private_key" => str_replace("\\n", "\n", env('DIALOGFLOW_PRIVATE_KEY')),
             "client_email" => env('DIALOGFLOW_CLIENT_EMAIL'),
             "client_id" => env('DIALOGFLOW_CLIENT_ID'),
             "auth_uri" => env('DIALOGFLOW_AUTH_URI'),
